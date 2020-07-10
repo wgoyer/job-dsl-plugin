@@ -394,7 +394,9 @@ public class ExecuteDslScripts extends Builder implements SimpleBuildStep {
         Set<String> existingTemplates = getTemplates(extractGeneratedObjects(seedJob, GeneratedJobsAction.class));
         Set<String> newTemplates = Sets.difference(freshTemplates, existingTemplates);
         Set<String> removedTemplates = Sets.difference(existingTemplates, freshTemplates);
-
+        for (String template : existingTemplates) {
+            listener.getLogger().println("Template: " + template + "\nTemplateLower: " + template.toLowerCase());
+        }
         logItems(listener, "Existing templates", existingTemplates);
         logItems(listener, "New templates", newTemplates);
         logItems(listener, "Unreferenced templates", removedTemplates);
@@ -454,7 +456,9 @@ public class ExecuteDslScripts extends Builder implements SimpleBuildStep {
         Set<GeneratedJob> unreferenced = Sets.difference(generatedJobs, freshJobs);
         Set<GeneratedJob> removed = new HashSet<>();
         Set<GeneratedJob> disabled = new HashSet<>();
-
+        for (GeneratedJob job : existing) {
+            listener.getLogger().println("JobName: " + job.getJobName() + "\nJobNameLower: " + job.getJobName().toLowerCase());
+        }
         logItems(listener, "Added items", added);
         logItems(listener, "Existing items", existing);
         logItems(listener, "Unreferenced items", unreferenced);
@@ -597,6 +601,10 @@ public class ExecuteDslScripts extends Builder implements SimpleBuildStep {
                 listener.getLogger().println("    " + item.toString());
             }
         }
+    }
+
+    private static void logItem(TaskListener listener, String message) {
+
     }
 
     private static Set<String> getTemplates(Collection<GeneratedJob> jobs) {
