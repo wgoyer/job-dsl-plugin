@@ -447,17 +447,32 @@ public class ExecuteDslScripts extends Builder implements SimpleBuildStep {
         return freshTemplates;
     }
 
+    private boolean jobIsUnreferenced(Set<GeneratedJob> freshJobs, GeneratedJob unreferencedJob) {
+        boolean unreferenced = true;
+        for (GeneratedJob freshJob: freshJobs) {
+            String normalizedFreshJobName = freshJob.getJobName().toLowerCase();
+            String normalizedUnreferencedJobName = unreferencedJob.getJobName().toLowerCase();
+            if (normalizedFreshJobName.equals(normalizedUnreferencedJobName)) {
+                unreferenced = false;
+            }
+        }
+        return unreferenced;
+    }
+
     private void updateGeneratedJobs(final Job seedJob, TaskListener listener,
                                      Set<GeneratedJob> freshJobs) throws IOException, InterruptedException {
         // Update Project
         Set<GeneratedJob> generatedJobs = extractGeneratedObjects(seedJob, GeneratedJobsAction.class);
         Set<GeneratedJob> added = Sets.difference(freshJobs, generatedJobs);
         Set<GeneratedJob> existing = Sets.intersection(generatedJobs, freshJobs);
-        Set<GeneratedJob> unreferenced = Sets.difference(generatedJobs, freshJobs);
+        Set<GeneratedJob> rawUnreferenced = Sets.difference(generatedJobs, freshJobs);
+        Set<GeneratedJob> unreferenced = new HashSet<>();
         Set<GeneratedJob> removed = new HashSet<>();
         Set<GeneratedJob> disabled = new HashSet<>();
-        for (GeneratedJob job : existing) {
-            listener.getLogger().println("JobName: " + job.getJobName() + "\nJobNameLower: " + job.getJobName().toLowerCase());
+        for (GeneratedJob uJob : rawUnreferenced) {
+            if (jobIsUnreferenced(freshJobs, uJob)) {
+                unreferenced.add(uJob);
+            }
         }
         logItems(listener, "Added items", added);
         logItems(listener, "Existing items", existing);
